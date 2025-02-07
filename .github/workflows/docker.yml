@@ -1,0 +1,68 @@
+name: Publish Docker Image
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+jobs:
+  push_to_registry:
+    name: Publish Docker Image
+    runs-on: ubuntu-latest
+    concurrency:
+      group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}: ${{ matrix.dockerfile }}'
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        include:
+          - dockerfile: Dockerfile
+            images: |
+              ghcr.io/talavis/snacka-csc
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@11bd719
+      - name: Log in to Github Container Repository
+        uses: docker/login-action@9780b0c
+        with:
+          registry: ghcr.io
+          # will run as the user who triggered the action, using its token
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@369eb59
+        with:
+          images: ${{ matrix.images }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,format=long
+      - name: Build and publish
+        uses: docker/build-push-action@ca877d9
+        with:
+          file: ${{ matrix.dockerfile }}
+          context: .
+          push: true
+          build-args: version=${{ github.ref_name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.8.0
+      - name: Sign image with Cosign
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
+        env:
+          TAGS: ${{ steps.docker_meta.outputs.tags }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
