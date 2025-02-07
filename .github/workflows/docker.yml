@@ -17,16 +17,16 @@ jobs:
         include:
           - dockerfile: Dockerfile
             images: |
-              ghcr.io/talavis/snacka-csc
+              ghcr.io/talavis/snacka-scs
     permissions:
       contents: read
       packages: write
       security-events: write
     steps:
       - name: Check out the repo
-        uses: actions/checkout@11bd719
+        uses: actions/checkout@v4
       - name: Log in to Github Container Repository
-        uses: docker/login-action@9780b0c
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           # will run as the user who triggered the action, using its token
@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb59
+        uses: docker/metadata-action@v5
         with:
           images: ${{ matrix.images }}
           tags: |
@@ -44,7 +44,8 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,format=long
       - name: Build and publish
-        uses: docker/build-push-action@ca877d9
+        uses: docker/build-push-action@v6
+        id: build-and-publish
         with:
           file: ${{ matrix.dockerfile }}
           context: .
@@ -62,7 +63,7 @@ jobs:
           done
           cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
         env:
-          TAGS: ${{ steps.docker_meta.outputs.tags }}
+          TAGS: ${{ steps.meta.outputs.tags }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+          DIGEST: ${{ steps.build-and-publish.outputs.digest }}
