@@ -17,7 +17,7 @@ jobs:
         include:
           - dockerfile: Dockerfile
             images: |
-              ghcr.io/talavis/snacka-csc
+              ghcr.io/talavis/snacka-scs
     permissions:
       contents: read
       packages: write
