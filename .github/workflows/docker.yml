@@ -42,7 +42,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-#            type=sha,format=long
+            type=sha,format=long
       - name: Build and publish
         uses: docker/build-push-action@v6
         id: build-and-publish
@@ -66,4 +66,4 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          DIGEST: ${{ steps.build-and-pusblish.outputs.digest }}
+          DIGEST: ${{ steps.build-and-publish.outputs.digest }}
