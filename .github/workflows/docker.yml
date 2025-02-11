@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+      - key
+      - oidc
   release:
     types: [published]
 jobs:
@@ -55,29 +57,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.8.0
-      - if: github.ref_name == 'key'
-        name: Sign image with Cosign - key
+      - name: Sign image with Cosign - oidc
         run: |
           images=""
           for tag in ${TAGS}; do
             images+="${tag}@${DIGEST} "
           done
-          cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
+          cosign sign --yes ${images}
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          DIGEST: ${{ steps.build-and-publish.outputs.digest }}
-      - if: github.ref_name == 'oidc'
-        name: Sign image with Cosign - oidc
-        run: |
-          images=""
-          for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
-          done
-          cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           DIGEST: ${{ steps.build-and-publish.outputs.digest }}
