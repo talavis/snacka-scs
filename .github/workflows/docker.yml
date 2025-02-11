@@ -45,7 +45,7 @@ jobs:
             type=sha,format=long
       - name: Build and publish
         uses: docker/build-push-action@v6
-        id: build-and-publish
+        id: build-and-publish§
         with:
           file: ${{ matrix.dockerfile }}
           context: .
@@ -55,7 +55,21 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.8.0
-      - name: Sign image with Cosign
+      - if: github.ref_name == 'key'
+        name: Sign image with Cosign - key
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          DIGEST: ${{ steps.build-and-publish.outputs.digest }}
+      - if: github.ref_name == 'oidc'
+        name: Sign image with Cosign - oidc
         run: |
           images=""
           for tag in ${TAGS}; do
