@@ -4,7 +4,61 @@
       Snacka Supply Chain Security - Valentine Edition
     </title>
   </head>
+
+  <style>
+    body {
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+    }
+    
+    .container {
+	width: 800px;
+	height: 800px;
+	position: relative;
+	border: 3px solid deeppink;
+	background-color: pink;
+    }
+    /* Inspiration: https://stackoverflow.com/questions/17386168/how-to-create-a-heart-shape-using-css*/
+    .heart {
+	display: inline-block;
+	width: 500px;
+	aspect-ratio: 1;
+	border-image: radial-gradient(hotpink 69%, #0000 70%) 84.5%/50%;
+	clip-path: polygon(-41% 0, 50% 91%, 141% 0);
+    }
+    
+    .center {
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+    }
+    .center-h {
+	color: white;
+	margin: 0;
+	position: absolute;
+	top: 40%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 3em;
+    }
+  </style>
+
   <body>
-    Valentine greetings!
+    <div class="container">
+      <div class="center">
+	<div class="heart">
+	  <div class="center-h">
+	    <p>
+	      I love you!
+	    </p>
+	  </div>
+	</div>
+      </div>
+    </div> 
   </body>
 </html>
