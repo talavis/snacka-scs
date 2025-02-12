@@ -25,6 +25,9 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+      - name: Make the heart even better
+        run: |
+          sed -i 's/I love you!/Have a nice life/' index.html
       - name: Log in to Github Container Repository
         uses: docker/login-action@v3
         with:
