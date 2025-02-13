@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image
+  annotations:
+    policies.kyverno.io/title: Verify Image
+    policies.kyverno.io/category: Software Supply Chain Security
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/minversion: 1.7.0
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: verify-signed-image
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      verifyImages:
+      - imageReferences:
+        - "ghcr.io/talavis/*"
+        mutateDigest: true
+        attestors:
+        - entries:
+          - keys:
+              publicKeys: |
+                -----BEGIN PUBLIC KEY-----
+                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8jPyobzA82/HaiDz8bv3pByvlV4k
+                BmT5oJeiqnd1tuw+k5VTUhG7BUkh0sGDcpBWExormOqQPGbVkFMR7jg7Bg==
+                -----END PUBLIC KEY-----
